@@ -2,7 +2,7 @@
 wandb:
   project: "efficientnet-finetune-car" # W&B에 표시될 프로젝트 이름
   entity: null                         # ⭐️ 사용자의 W&B 아이디 또는 팀 이름 (필수 수정)
-  name: "effnet-b0-run-${now:%Y-%m-%d_%H-%M-%S}" # 실행 이름 (시간으로 자동 생성)
+  name: "effnet-b1-run-${now:%Y-%m-%d_%H-%M-%S}" # 실행 이름 (시간으로 자동 생성)
   log_model: "all"                     # 'all' 또는 true: 체크포인트를 W&B에 아티팩트로 저장
 
 # 데이터 설정
@@ -10,13 +10,13 @@ data:
   module_name: "ImageFolderDataModule" # 우리가 만들 데이터 모듈 이름
   train_dir: "../dataset/train"                  # 학습 데이터 경로
   val_split: 0.2                      # 검증 데이터 분할 비율
-  batch_size: 32
+  batch_size: 256
   num_workers: 8
 
 # 모델 설정
 model:
   module_name: "EfficientNetFineTuner"
-  model_variant: "B0"
+  model_variant: "B1"
   num_classes: 396
   phase1_epochs: 20
   phase2_epochs: 100
@@ -41,9 +41,9 @@ callbacks:
     verbose: true
   
   model_checkpoint:
-    dirpath: "./outputs/checkpoints/efficientnet_b0/" # 체크포인트 저장 경로 명시
+    dirpath: "./outputs/checkpoints/efficientnet_b1/" # 체크포인트 저장 경로 명시
     monitor: "val_acc"
     mode: "max"
-    filename: "efficientnet-b0-{epoch:02d}-{val_acc:.4f}"
+    filename: "efficientnet-b1-{epoch:02d}-{val_acc:.4f}"
     save_top_k: 1
     auto_insert_metric_name: false
