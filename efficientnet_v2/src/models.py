@@ -52,14 +52,24 @@ class EfficientNetFineTuner(L.LightningModule):
         return self.model(x)
 
     def on_train_epoch_start(self):
+        # ⭐️ [수정 1] Optimizer 상태 업데이트 로직 수정
         if self.current_epoch == self.hparams.phase1_epochs:
-            print(f"\n--- Epoch {self.current_epoch}: Switching to Fine-Tuning Phase ---")
+            print(f"\n--- Epoch {self.current_epoch}: Switching to Fine-Tuning Phase (Rank {self.global_rank}) ---")
+            
+            # 1. 모델 전체 파라미터 동결 해제
             for param in self.model.parameters():
                 param.requires_grad = True
             
+            # 2. Optimizer가 모델 전체 파라미터를 학습하도록 상태 갱신
             optimizer = self.optimizers()
-            optimizer.param_groups[0]['lr'] = self.hparams.learning_rate_phase2
-            print(f"Set learning rate to {self.hparams.learning_rate_phase2}")
+            # 기존 파라미터 그룹을 비우고,
+            optimizer.param_groups.clear()
+            # 전체 파라미터를 새로운 학습률과 함께 추가
+            optimizer.add_param_group({
+                'params': self.parameters(), 
+                'lr': self.hparams.learning_rate_phase2
+            })
+            print(f"Optimizer reconfigured with all parameters and new LR: {self.hparams.learning_rate_phase2} (Rank {self.global_rank})")
 
     def _common_step(self, batch, batch_idx):
         images, labels = batch
@@ -79,8 +89,9 @@ class EfficientNetFineTuner(L.LightningModule):
         loss, logits, labels = self._common_step(batch, batch_idx)
         acc = self.accuracy(logits, labels)
         
-        self.log('val_loss', loss, prog_bar=True)
-        self.log('val_acc', acc, prog_bar=True)
+        # ⭐️ [수정 2] 분산 학습 시 로그 동기화를 위해 sync_dist=True 추가
+        self.log('val_loss', loss, prog_bar=True, sync_dist=True)
+        self.log('val_acc', acc, prog_bar=True, sync_dist=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.classifier.parameters(), lr=self.hparams.learning_rate_phase1)

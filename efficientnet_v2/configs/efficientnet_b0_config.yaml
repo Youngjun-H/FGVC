@@ -1,6 +1,6 @@
 # Weights & Biases 설정
 wandb:
-  project: "efficientnet-finetune-korea" # W&B에 표시될 프로젝트 이름
+  project: "efficientnet-finetune-car" # W&B에 표시될 프로젝트 이름
   entity: null                         # ⭐️ 사용자의 W&B 아이디 또는 팀 이름 (필수 수정)
   name: "effnet-b0-run-${now:%Y-%m-%d_%H-%M-%S}" # 실행 이름 (시간으로 자동 생성)
   log_model: "all"                     # 'all' 또는 true: 체크포인트를 W&B에 아티팩트로 저장
@@ -15,15 +15,14 @@ data:
 
 # 모델 설정
 model:
-  module_name: "EfficientNetFineTuner" # 우리가 만들 모델 이름
-  model_variant: "B0"                  # 'B0', 'B1', 'B2', 'B3'
+  module_name: "EfficientNetFineTuner"
+  model_variant: "B0"
   num_classes: 396
-  
-  # 2단계 학습을 위한 설정
   phase1_epochs: 15
   phase2_epochs: 50
-  learning_rate_phase1: 0.01
-  learning_rate_phase2: 0.00001 # 1e-5
+  # ⭐️ [수정 3] 8개 GPU에 맞춰 학습률 8배 증가
+  learning_rate_phase1: 0.008 # 0.001 * 8
+  learning_rate_phase2: 0.00008 # 0.00001 * 8
 
 # Trainer 및 콜백 설정
 trainer:

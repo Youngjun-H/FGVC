@@ -3,5 +3,6 @@ cache/
 checkpoints/
 lightning_logs/
 dataset/
-.log
+*.log
 .env
+*.out
