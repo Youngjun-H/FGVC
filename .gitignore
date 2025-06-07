@@ -3,6 +3,8 @@ cache/
 checkpoints/
 lightning_logs/
 dataset/
-*.log
+efficientnet_v2/wandb/
+submission/
 .env
+*.log
 *.out
