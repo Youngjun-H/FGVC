@@ -2,7 +2,7 @@
 wandb:
   project: "efficientnet-finetune-car" # W&B에 표시될 프로젝트 이름
   entity: null                         # ⭐️ 사용자의 W&B 아이디 또는 팀 이름 (필수 수정)
-  name: "effnet-b0-run-${now:%Y-%m-%d_%H-%M-%S}" # 실행 이름 (시간으로 자동 생성)
+  name: "effnet-b3-run-${now:%Y-%m-%d_%H-%M-%S}" # 실행 이름 (시간으로 자동 생성)
   log_model: "all"                     # 'all' 또는 true: 체크포인트를 W&B에 아티팩트로 저장
 
 # 데이터 설정
@@ -16,7 +16,7 @@ data:
 # 모델 설정
 model:
   module_name: "EfficientNetFineTuner"
-  model_variant: "B0"
+  model_variant: "B3"
   num_classes: 396
   phase1_epochs: 20
   phase2_epochs: 100
@@ -28,8 +28,6 @@ model:
 trainer:
   accelerator: "gpu"
   devices: 8
-  strategy: 'ddp'  # 또는 'ddp_spawn', 'ddp_fork' 
-  sync_batchnorm: True
   # 총 에폭은 두 단계의 합입니다.
   max_epochs: 120 # phase1_epochs + phase2_epochs
   precision: "16-mixed"
@@ -43,9 +41,9 @@ callbacks:
     verbose: true
   
   model_checkpoint:
-    dirpath: "./outputs/checkpoints/efficientnet_b0/" # 체크포인트 저장 경로 명시
+    dirpath: "./outputs/checkpoints/efficientnet_b3/" # 체크포인트 저장 경로 명시
     monitor: "val_acc"
     mode: "max"
-    filename: "efficientnet-b0-{epoch:02d}-{val_acc:.4f}"
+    filename: "efficientnet-b3-{epoch:02d}-{val_acc:.4f}"
     save_top_k: 1
     auto_insert_metric_name: false

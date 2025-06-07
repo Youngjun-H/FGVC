@@ -21,10 +21,6 @@ class EfficientNetFineTuner(L.LightningModule):
         super().__init__()
         # 하이퍼파라미터를 저장합니다.
         self.save_hyperparameters()
-
-        # ⭐️ 1. 온도(T) 값을 위한 버퍼 등록
-        # 학습되지는 않지만, 모델의 state_dict에 저장되어 관리됩니다.
-        self.register_buffer('temperature', torch.tensor(1.0))
         
         if model_variant not in MODEL_MAP:
             raise ValueError("Unsupported EfficientNet variant")
@@ -54,59 +50,101 @@ class EfficientNetFineTuner(L.LightningModule):
     # ... (forward, on_train_epoch_start, training_step 등 다른 메서드는 변경 없음)
     def forward(self, x):
         logits = self.model(x)
-        # ⭐️ 2. 온도 스케일링 적용
-        # forward 패스의 최종 출력인 logits를 온도로 나누어 줍니다.
-        return logits / self.temperature
+        return logits
     
-    # ⭐️ 3. 최적의 온도를 찾는 메서드 추가
-    def find_optimal_temperature(self, val_loader: torch.utils.data.DataLoader):
-        """
-        검증 데이터셋을 사용하여 최적의 온도를 찾고, self.temperature를 업데이트합니다.
-        """
-        self.eval() # 모델을 평가 모드로 설정
+    # # ⭐️ 3. 최적의 온도를 찾는 메서드 추가
+    # def find_optimal_temperature(self, val_loader: torch.utils.data.DataLoader):
+    #     """
+    #     검증 데이터셋을 사용하여 최적의 온도를 찾고, self.temperature를 업데이트합니다.
+    #     """
+    #     self.eval() # 모델을 평가 모드로 설정
         
-        all_logits = []
-        all_labels = []
+    #     all_logits = []
+    #     all_labels = []
 
-        # 먼저 검증 데이터셋 전체에 대한 logits와 레이블을 수집합니다.
-        print("Collecting logits from validation set for calibration...")
-        with torch.no_grad():
-            for inputs, labels in val_loader:
-                inputs = inputs.to(self.device)
+    #     # 먼저 검증 데이터셋 전체에 대한 logits와 레이블을 수집합니다.
+    #     print("Collecting logits from validation set for calibration...")
+    #     with torch.no_grad():
+    #         for inputs, labels in val_loader:
+    #             inputs = inputs.to(self.device)
                 
-                # 원본 모델의 순수 logits를 얻기 위해 self.model을 직접 호출
-                logits = self.model(inputs) 
-                all_logits.append(logits)
-                all_labels.append(labels)
+    #             # 원본 모델의 순수 logits를 얻기 위해 self.model을 직접 호출
+    #             logits = self.model(inputs) 
+    #             all_logits.append(logits)
+    #             all_labels.append(labels)
         
-        all_logits = torch.cat(all_logits).to(self.device)
-        all_labels = torch.cat(all_labels).to(self.device)
+    #     all_logits = torch.cat(all_logits).to(self.device)
+    #     all_labels = torch.cat(all_labels).to(self.device)
 
-        # 최적의 온도를 찾기 위한 최적화 시작
-        # 온도를 학습 가능한 파라미터로 설정 (초기값 1.5)
-        temperature_param = nn.Parameter(torch.ones(1).to(self.device) * 1.5)
+    #     # 최적의 온도를 찾기 위한 최적화 시작
+    #     # 온도를 학습 가능한 파라미터로 설정 (초기값 1.5)
+    #     temperature_param = nn.Parameter(torch.ones(1).to(self.device) * 1.5)
         
-        # 손실 함수 (NLL Loss, CrossEntropyLoss와 동일)
-        nll_criterion = nn.CrossEntropyLoss()
+    #     # 손실 함수 (NLL Loss, CrossEntropyLoss와 동일)
+    #     nll_criterion = nn.CrossEntropyLoss()
 
-        # L-BFGS 옵티마이저는 이런 단일 변수 최적화에 효과적입니다.
-        optimizer = optim.LBFGS([temperature_param], lr=0.01, max_iter=50)
+    #     # L-BFGS 옵티마이저는 이런 단일 변수 최적화에 효과적입니다.
+    #     optimizer = optim.LBFGS([temperature_param], lr=0.01, max_iter=50)
 
-        def closure():
-            optimizer.zero_grad()
-            # 온도로 스케일링된 logits에 대한 손실 계산
-            loss = nll_criterion(all_logits / temperature_param, all_labels)
-            loss.backward()
-            return loss
+    #     def closure():
+    #         optimizer.zero_grad()
+    #         # 온도로 스케일링된 logits에 대한 손실 계산
+    #         loss = nll_criterion(all_logits / temperature_param, all_labels)
+    #         loss.backward()
+    #         return loss
         
-        print("Finding optimal temperature...")
-        optimizer.step(closure)
+    #     print("Finding optimal temperature...")
+    #     optimizer.step(closure)
 
-        optimal_t = temperature_param.item()
-        print(f"Optimal temperature found: {optimal_t:.4f}")
+    #     # optimal_t = temperature_param.item()
+    #     # print(f"Optimal temperature found: {optimal_t:.4f}")
         
-        # 찾은 최적의 온도를 모델의 버퍼에 저장
-        self.temperature.data = torch.tensor(optimal_t)
+    #     # # 찾은 최적의 온도를 모델의 버퍼에 저장
+    #     # self.temperature.data = torch.tensor(optimal_t)
+
+    #     return temperature_param.item()
+    
+    # # # ⭐️ 2. 보정 전/후 성능을 체계적으로 검증하는 메서드 추가
+    # # def test_calibration(self, val_loader: torch.utils.data.DataLoader):
+    # #     self.eval()
+        
+    # #     all_logits = []
+    # #     all_labels = []
+
+    # #     print("Collecting data for calibration test...")
+    # #     with torch.no_grad():
+    # #         for inputs, labels in val_loader:
+    # #             inputs = inputs.to(self.device)
+    # #             logits = self.model(inputs) # 순수 logits 수집
+    # #             all_logits.append(logits)
+    # #             all_labels.append(labels.to(self.device))
+        
+    # #     all_logits = torch.cat(all_logits)
+    # #     all_labels = torch.cat(all_labels)
+
+    # #     # -- 보정 전 성능 측정 --
+    # #     uncalibrated_probs = torch.softmax(all_logits, dim=1)
+    # #     uncalibrated_acc = self.accuracy(uncalibrated_probs, all_labels)
+    # #     uncalibrated_loss = self.criterion(all_logits, all_labels)
+    # #     uncalibrated_ece = self.ece(uncalibrated_probs, all_labels)
+
+    # #     print("\n--- Uncalibrated Model Performance ---")
+    # #     print(f"  Accuracy: {uncalibrated_acc.item():.4f}")
+    # #     print(f"  NLL Loss: {uncalibrated_loss.item():.4f}")
+    # #     print(f"  ECE     : {uncalibrated_ece.item():.4f}")
+
+    # #     # -- 보정 후 성능 측정 --
+    # #     calibrated_logits = all_logits / self.temperature
+    # #     calibrated_probs = torch.softmax(calibrated_logits, dim=1)
+    # #     calibrated_acc = self.accuracy(calibrated_probs, all_labels)
+    # #     calibrated_loss = self.criterion(calibrated_logits, all_labels)
+    # #     calibrated_ece = self.ece(calibrated_probs, all_labels)
+
+    # #     print("\n--- Calibrated Model Performance ---")
+    # #     print(f"  (Applied Temperature: {self.temperature.item():.4f})")
+    # #     print(f"  Accuracy: {calibrated_acc.item():.4f}")
+    # #     print(f"  NLL Loss: {calibrated_loss.item():.4f}")
+    # #     print(f"  ECE     : {calibrated_ece.item():.4f}")
 
     def on_train_epoch_start(self):
         if self.current_epoch == self.hparams.phase1_epochs:

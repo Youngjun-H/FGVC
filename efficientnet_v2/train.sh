@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=infer_test
-#SBATCH --nodelist=hpe160
+#SBATCH --nodelist=hpe162
 #SBATCH --gpus=8
 #SBATCH --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
@@ -24,4 +24,4 @@ export KAGGLEHUB_CACHE=./cache/kagglehub
 # torch cache directory
 export TORCH_HOME=./cache/torch
 
-srun python efficientnet/train.py
+srun python src/train.py
