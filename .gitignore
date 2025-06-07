@@ -1,0 +1,7 @@
+__pycache__/
+cache/
+checkpoints/
+lightning_logs/
+dataset/
+.log
+.env
