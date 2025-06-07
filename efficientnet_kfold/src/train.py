@@ -14,6 +14,20 @@ import data_modules
 import models
 from models import MODEL_MAP # 모델별 이미지 크기 정보를 가져오기 위해 임포트
 
+# ⭐️ 1. 누락된 substitute_env_vars 함수를 여기에 정의합니다.
+def substitute_env_vars(config):
+    """Recursively substitutes environment variable placeholders in a config dict."""
+    for key, value in config.items():
+        if isinstance(value, dict):
+            substitute_env_vars(value)
+        elif isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+            env_var_name = value[2:-1]
+            env_var_value = os.environ.get(env_var_name)
+            if env_var_value is None:
+                raise ValueError(f"Environment variable '{env_var_name}' not found, but is required by the config.")
+            config[key] = env_var_value
+    return config
+
 def main(config_path: str):
     # Enable Tensor Core usage for better performance
     torch.set_float32_matmul_precision('high')
