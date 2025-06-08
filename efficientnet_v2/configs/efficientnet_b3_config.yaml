@@ -28,9 +28,11 @@ model:
 trainer:
   accelerator: "gpu"
   devices: 8
+  strategy: 'ddp'  # 또는 'ddp_spawn', 'ddp_fork' 
+  sync_batchnorm: True
   # 총 에폭은 두 단계의 합입니다.
   max_epochs: 120 # phase1_epochs + phase2_epochs
-  precision: "16-mixed"
+  # precision: "16-mixed"
 
 # 콜백(Callback) 설정
 callbacks:
