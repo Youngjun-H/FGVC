@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=infer_test
-#SBATCH --nodelist=hpe159
+#SBATCH --nodelist=hpe162
 #SBATCH --gpus=8
 #SBATCH --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
@@ -14,7 +14,7 @@ echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
 
 echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
 echo "실험 내용"
-echo "v2l 모델 실험, phase2 - lr 0.008, batch 32, phase1 epoch 50" 
+echo "이미지 증강 기법 변경 1차" 
 echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
 
 echo "Run started at:- "

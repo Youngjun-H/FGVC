@@ -70,7 +70,7 @@ def main(config_path: str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train an EfficientNet model using PyTorch Lightning.")
-    parser.add_argument('--config', type=str, default='configs/efficientnet_b3_config.yaml', help="Path to the config file.")
+    parser.add_argument('--config', type=str, default='configs/efficientnet_v2l_config.yaml', help="Path to the config file.")
     args = parser.parse_args()
     load_dotenv()
 

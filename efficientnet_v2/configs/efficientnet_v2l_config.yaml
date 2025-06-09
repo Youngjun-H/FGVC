@@ -4,7 +4,7 @@ wandb:
   project: "efficientnet-finetune-car" # W&B에 표시될 프로젝트 이름
   entity: null                         # ⭐️ 사용자의 W&B 아이디 또는 팀 이름 (필수 수정)
   name: "effnet-v2l-run-${now:%Y-%m-%d_%H-%M-%S}" # 실행 이름 (시간으로 자동 생성)
-  log_model: "all"                     # 'all' 또는 true: 체크포인트를 W&B에 아티팩트로 저장
+  log_model: False
 
 # 데이터 설정
 data:
@@ -19,7 +19,7 @@ model:
   module_name: "EfficientNetFineTuner"
   model_variant: "V2L"
   num_classes: 396
-  phase1_epochs: 50
+  phase1_epochs: 30
   phase2_epochs: 200
   # ⭐️ [수정 3] 8개 GPU에 맞춰 학습률 8배 증가
   learning_rate_phase1: 0.008 # 0.001 * 8

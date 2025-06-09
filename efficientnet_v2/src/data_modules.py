@@ -27,13 +27,21 @@ class ImageFolderDataModule(L.LightningDataModule):
         self.image_size = image_size
         
         # 데이터 증강 및 정규화 정의
+        # self.train_transforms = T.Compose([
+        #     T.RandomResizedCrop(size=self.image_size, scale=(0.8, 1.0)),
+        #     T.RandomRotation(degrees=20),
+        #     T.RandomHorizontalFlip(),
+        #     T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        #     T.ToTensor(),
+        #     T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        # ])
         self.train_transforms = T.Compose([
-            T.RandomResizedCrop(size=self.image_size, scale=(0.8, 1.0)),
-            T.RandomRotation(degrees=20),
-            T.RandomHorizontalFlip(),
-            T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+            T.RandomResizedCrop(self.image_size, scale=(0.75, 1.0)), # 1. Resize -> RandomResizedCrop
+            T.RandomHorizontalFlip(p=0.5),
+            T.TrivialAugmentWide(),                               # 2. ColorJitter -> TrivialAugment
             T.ToTensor(),
-            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            T.RandomErasing(p=0.2),                               # 3. RandomErasing 추가
+            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
         self.val_transforms = T.Compose([
             T.Resize(self.image_size),
